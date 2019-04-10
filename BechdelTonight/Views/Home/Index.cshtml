@@ -1,0 +1,141 @@
+﻿@using BechdelTonight.Models
+@using BechdelTonight.Extensions
+
+@{
+    ViewBag.Title = "Bechdel Tonight";
+}
+
+<div class="jumbotron">
+    <h1>Bechdel </h1>
+    <p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+    <p> Donec sed ipsum eros. Vivamus vitae enim quis est efficitur feugiat. Nulla ultricies sem eu ipsum elementum vehicula. Mauris a nunc ut sem commodo auctor et ac nibh. Cras vel sapien condimentum, accumsan tortor sed, mollis lacus. Etiam laoreet tincidunt arcu, sed interdum massa. </p>
+    <p><a href="https://asp.net" class="btn btn-link">Learn more &raquo;</a></p>
+</div>
+
+<button class="btn btn-primary btn-lg" onclick="LoadGuide()">Go</button>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="btn-toolbar">
+            <div id="StateDropdown" class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="StateButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    @ViewBag.CurrentState.ToString()
+                </button>
+                <div class="dropdown-menu" aria-labelledby="StateButton">
+                    @{
+                        <a class="dropdown-item @(ViewBag.CurrentState == State.ACT ? "active" : "")" href="#" data-val="@State.ACT">ACT</a>
+                        <a class="dropdown-item @(ViewBag.CurrentState == State.NSW ? "active" : "")" href="#" data-val="@State.NSW">NSW</a>
+                        <a class="dropdown-item @(ViewBag.CurrentState == State.NT ? "active" : "")" href="#" data-val="@State.NT">NT</a>
+                        <a class="dropdown-item @(ViewBag.CurrentState == State.QLD ? "active" : "")" href="#" data-val="@State.QLD">QLD</a>
+                        <a class="dropdown-item @(ViewBag.CurrentState == State.SA ? "active" : "")" href="#" data-val="@State.SA">SA</a>
+                        <a class="dropdown-item @(ViewBag.CurrentState == State.VIC ? "active" : "")" href="#" data-val="@State.VIC">VIC</a>
+                        <a class="dropdown-item @(ViewBag.CurrentState == State.WA ? "active" : "")" href="#" data-val="@State.WA">WA</a>
+                    }
+                </div>
+            </div>
+            <div id="ChannelDropdown" class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="ChannelButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    @{
+                        Channel c = ViewBag.CurrentChannel;
+                    }
+                    @c.GetDescription()
+                </button>
+                <div class="dropdown-menu" aria-labelledby="ChannelButton">
+                    <a class="dropdown-item @(ViewBag.CurrentChannel == Channel.Seven ? "active" : "")" href="#" data-val="@Channel.Seven">Channel 7</a>
+                    <a class="dropdown-item @(ViewBag.CurrentChannel == Channel.SevenTwo ? "active" : "")" href="#" data-val="@Channel.SevenTwo">7 TWO</a>
+                    <a class="dropdown-item @(ViewBag.CurrentChannel == Channel.SevenMate ? "active" : "")" href="#" data-val="@Channel.SevenMate">7 mate</a>
+                    <a class="dropdown-item @(ViewBag.CurrentChannel == Channel.SevenFlix ? "active" : "")" href="#" data-val="@Channel.SevenFlix">7 flix</a>
+                    <a class="dropdown-item @(ViewBag.CurrentChannel == Channel.SBS ? "active" : "")" href="#" data-val="@Channel.SBS">SBS</a>
+                    <a class="dropdown-item @(ViewBag.CurrentChannel == Channel.Nine ? "active" : "")" href="#" data-val="@Channel.Nine">Channel 9</a>
+                    <a class="dropdown-item @(ViewBag.CurrentChannel == Channel.NineLife ? "active" : "")" href="#" data-val="@Channel.NineLife">9 Life</a>
+                </div>
+            </div>
+            <div id="DateDropdown" class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="DateButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    @{
+                        DateTime d = ViewBag.CurrentDate;
+                    }
+                    @d.FormatForGuide()
+                </button>
+                <div class="dropdown-menu" aria-labelledby="DateButton">
+                    @{
+                        <a class="dropdown-item @(ViewBag.CurrentDate == DateTime.Today ? "active" : "")" href="#" data-val="0">Today</a>
+                        <a class="dropdown-item @(ViewBag.CurrentDate == DateTime.Today.AddDays(1) ? "active" : "")" href="#" data-val="1">Tomorrow</a>
+                        for (int i = 2; i < 7; i++)
+                        {
+                            <a class="dropdown-item @(ViewBag.CurrentDate == DateTime.Today.AddDays(i) ? "active" : "")" href="#" data-val="@i">@DateTime.Today.AddDays(i).FormatForGuide()</a>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="guide"></div>
+
+@section Scripts {
+
+    <script>
+        $(document).ready(function () {
+
+            $("#ChannelDropdown a").click(LoadGuide);
+            $("#StateDropdown a").click(LoadGuide);
+            $("#DateDropdown a").click(LoadGuide);
+
+            $('.alert .close').on('click', function (e) {
+                $(this).parent().hide();
+            });
+        });
+
+        function UpdateProgress(value) {
+            $(".progress-bar").css("width", value + "%");
+            $(".progress-bar").attr("aria-valuenow", value);
+        }
+
+        function LoadGuide() {
+
+            $("#guide").html("<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='width: 10%'></div></div>");
+
+            $(this).parent().children(".active").removeClass("active");
+            $(this).addClass("active");
+
+            $("#StateButton").text($("#StateDropdown .active").text());
+            $("#ChannelButton").text($("#ChannelDropdown .active").text());
+            $("#DateButton").text($("#DateDropdown .active").text());
+
+            var state = $("#StateDropdown .active").data("val");
+            var channel = $("#ChannelDropdown .active").data("val");
+            var days = $("#DateDropdown .active").data("val");
+
+            UpdateProgress(20);
+
+            $.get("/Home/_Guide?state=" + state + "&channel=" + channel + "&days=" + days, function (data) {
+
+                UpdateProgress(60);
+
+                if (data.Success == false) {
+                    ClearAlert();
+                    DisplayAlert(data.Message);
+                    $("#guide").html("<div class='guide-empty'><div>No guide data available.</div></div>");
+                    return;
+                }
+
+                $("#guide").html(data);
+                $('[data-toggle="popover"]').popover({ trigger: 'hover' });
+
+                UpdateProgress(100);
+            });
+        }
+
+        function ClearAlert() {
+            $(".alert").hide();
+        }
+
+        function DisplayAlert(message) {
+            $(".toaster").html("<div class= 'alert alert-danger alert-dismissible fade' role='alert'>" + message + "<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>");
+            $(".alert").addClass("show");
+        }
+    </script>
+
+}

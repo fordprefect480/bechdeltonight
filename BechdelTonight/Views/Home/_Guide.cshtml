@@ -1,0 +1,47 @@
+﻿@model List<Programme>
+
+@using BechdelTonight.Models
+
+@functions { 
+    private string GetProgrammeScoreClass(int? score)
+    {
+        if (!score.HasValue)
+        {
+            return "inactive";
+        }
+
+        switch(score)
+        {
+            case 0:
+                return "danger";
+            case 1:
+                return "warning";
+            case 2:
+                return "warning";
+            case 3:
+                return "success";
+            default:
+                return "inactive";
+        }
+    }
+}
+<div class="row">
+    <div class="col-md-12">
+        <ul class="list-group">
+            @foreach (var programme in Model)
+            {
+                <li class="list-group-item list-group-item-@GetProgrammeScoreClass(programme.Score) d-flex justify-content-between align-items-center">
+                    <span>@programme.Title&nbsp;<small>@programme.Time.ToString("t")</small></span>
+                        @if (programme.Score.HasValue)
+                        {
+                            <span class="badge badge-primary badge-pill" data-toggle="popover" data-html="true" data-content="@programme.ScoreExplanation">@programme.Score / 3</span> 
+                        }
+                        else
+                        {
+                            <span> - </span>
+                        }
+                </li>
+            }
+        </ul>
+    </div>
+  </div>
